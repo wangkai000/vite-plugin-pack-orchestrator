@@ -47,15 +47,37 @@ export default {
 
 ## 钩子
 
-`onAfterBuild` 可返回新路径实现重命名：
+`onAfterBuild` 可返回新路径实现重命名，返回值与原路径不同时自动重命名：
 
 ```typescript
-onAfterBuild: (path, format, checksums) => {
-  return path.replace(/\.(\w+)$/, `-${checksums.sha1.slice(0, 8)}.$1`);
-}
+// 1. 在扩展名前插入 sha1 哈希
+// app.zip → app-3a7b2c1d.zip
+onAfterBuild: (path, format, checksums) =>
+  path.replace(/(\.(?:zip|tar\.gz|tar|7z))$/, `-${checksums.sha1.slice(0, 8)}$1`);
+
+// 2. 用 MD5 全量替换文件名
+// app.zip → a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6.zip
+onAfterBuild: (path, format, checksums) =>
+  path.replace(/^.+(?=\.\w+$)/, checksums.md5);
+
+// 3. 追加格式和哈希到原始文件名
+// app.zip → app-zip-3a7b2c1d.zip
+onAfterBuild: (path, format, checksums) =>
+  path.replace(/(\.\w+)$/, `-${format}-${checksums.sha256.slice(0, 8)}$1`);
+
+// 4. 完全自定义文件名，用 format 参数自动适配后缀
+// app.zip → release-a1b2c3d4e5f6.zip
+onAfterBuild: (path, format, checksums) =>
+  `release-${checksums.md5.slice(0, 12)}.${format}`;
 ```
 
-`checksums` 包含：`md5`、`sha1`、`sha256`
+`checksums` 结构：
+
+```typescript
+{ md5: string; sha1: string; sha256: string }
+```
+
+> ⚠️ `onAfterBuild` 返回的路径后缀必须与打包 `format` 一致（如 `zip` 格式必须以 `.zip` 结尾），否则会输出警告。文件仍会重命名，但后缀不匹配可能导致下游解析异常。
 
 ## License
 

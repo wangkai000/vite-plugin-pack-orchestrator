@@ -47,15 +47,37 @@ export default {
 
 ## Hooks
 
-`onAfterBuild` can return a new path to rename:
+`onAfterBuild` can return a new path to rename. File is renamed when the return value differs from the original path:
 
 ```typescript
-onAfterBuild: (path, format, checksums) => {
-  return path.replace(/\.(\w+)$/, `-${checksums.sha1.slice(0, 8)}.$1`);
-}
+// 1. Insert sha1 hash before extension
+// app.zip → app-3a7b2c1d.zip
+onAfterBuild: (path, format, checksums) =>
+  path.replace(/(\.(?:zip|tar\.gz|tar|7z))$/, `-${checksums.sha1.slice(0, 8)}$1`);
+
+// 2. Replace entire filename with MD5
+// app.zip → a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6.zip
+onAfterBuild: (path, format, checksums) =>
+  path.replace(/^.+(?=\.\w+$)/, checksums.md5);
+
+// 3. Append format and hash to original name
+// app.zip → app-zip-3a7b2c1d.zip
+onAfterBuild: (path, format, checksums) =>
+  path.replace(/(\.\w+)$/, `-${format}-${checksums.sha256.slice(0, 8)}$1`);
+
+// 4. Fully custom filename, use format param for auto extension
+// app.zip → release-a1b2c3d4e5f6.zip
+onAfterBuild: (path, format, checksums) =>
+  `release-${checksums.md5.slice(0, 12)}.${format}`;
 ```
 
-`checksums` contains: `md5`, `sha1`, `sha256`
+`checksums` structure:
+
+```typescript
+{ md5: string; sha1: string; sha256: string }
+```
+
+> ⚠️ The extension returned by `onAfterBuild` must match the `format` (e.g. `zip` format must end with `.zip`). A warning is printed on mismatch. The file is still renamed, but an incorrect extension may cause downstream parsing issues.
 
 ## License
 

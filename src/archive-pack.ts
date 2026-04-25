@@ -328,7 +328,11 @@ export async function createArchive(
     if (hooks?.onAfterBuild) {
       const newPath = await hooks.onAfterBuild(archivePath, format, checksums);
       if (newPath && newPath !== archivePath) {
-        // Rename file to new path
+        const expectedExt = getArchiveExtension(format);
+        if (!newPath.endsWith(expectedExt)) {
+          const errMsg = `[pack-orchestrator] ⚠️ onAfterBuild 返回路径后缀 "${path.extname(newPath)}" 与打包格式 "${format}" (期望 "${expectedExt}") 不一致，文件内容格式与后缀不匹配`;
+          console.warn(errMsg);
+        }
         const dir = path.dirname(archivePath);
         const newFileName = path.basename(newPath);
         const finalFilePath = path.isAbsolute(newPath) ? newPath : path.resolve(dir, newFileName);

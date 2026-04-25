@@ -1,27 +1,18 @@
 import { defineConfig } from 'vite';
 import orchestrator from '../dist/index.js';
 
-const formats = ['zip', 'tar', 'tar.gz', '7z'] as const;
-
+// 验证案例1: 在扩展名前插入 sha1 哈希
+// 预期: case1-app-xxxxxxxx.zip
 export default defineConfig({
-  plugins: formats.map(format =>
+  plugins: [
     orchestrator({
-      pack: {
-        outDir: 'dist',
-        fileName: `app-[version]-[timestamp].${format === 'tar.gz' ? 'tar.gz' : format}`,
-        format,
-        compressionLevel: 9,
-        exclude: ['**/*.map', '**/.DS_Store'],
-      },
+      pack: { outDir: 'dist', fileName: 'case1-app', format: 'zip', exclude: ['**/*.map', '**/.DS_Store'] },
       hooks: {
-        onAfterBuild: (archivePath, fmt, checksums) =>
-          console.log(`✅ ${fmt.toUpperCase()} | MD5: ${checksums.md5.slice(0, 8)}... | ${archivePath}`),
+        onAfterBuild: (path, format, checksums) =>
+          path.replace(/(\.(?:zip|tar\.gz|tar|7z))$/, `-${checksums.sha1.slice(0, 8)}$1`),
       },
       verbose: true,
-    })
-  ),
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true,
-  },
+    }),
+  ],
+  build: { outDir: 'dist', emptyOutDir: true },
 });
