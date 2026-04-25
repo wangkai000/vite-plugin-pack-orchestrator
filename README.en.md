@@ -1,6 +1,6 @@
 # Vite Plugin Pack Orchestrator
 
-[简体中文](https://github.com/wangkai000/vite-plugin-pack-orchestrator/blob/main/README.md) | **English**
+**English** | [简体中文](https://github.com/wangkai000/vite-plugin-pack-orchestrator/blob/main/README.md)
 
 > A lightweight Vite plugin: auto-pack dist into ZIP/TAR/7Z after `vite build`, with MD5/SHA1/SHA256 checksums and auto-rename support
 

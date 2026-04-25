@@ -1,6 +1,6 @@
 # Vite Plugin Pack Orchestrator
 
-[English](https://github.com/wangkai000/vite-plugin-pack-orchestrator/blob/main/README.en.md) | **简体中文**
+**简体中文** | [English](https://github.com/wangkai000/vite-plugin-pack-orchestrator/blob/main/README.en.md)
 
 > 一个精简的 Vite 插件：vite build 完成后自动将 dist 打包为 ZIP / TAR / 7Z，同时计算 MD5 / SHA1 / SHA256 校验和，支持自动重命名。
 
