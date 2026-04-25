@@ -72,7 +72,8 @@ export default defineConfig({
 | `[name]` | package.json name |
 | `[version]` | package.json version |
 | `[timestamp]` | Unix timestamp (ms) |
-| `[hash]` | Bundle content hash |
+| `[hash]` | Bundle content hash (8 chars) |
+| `[md5]` | Archive file MD5 (8 chars) |
 
 ## Lifecycle Hooks
 

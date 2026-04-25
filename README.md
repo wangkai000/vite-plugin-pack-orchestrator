@@ -72,7 +72,8 @@ export default defineConfig({
 | `[name]` | package.json name |
 | `[version]` | package.json version |
 | `[timestamp]` | 时间戳（毫秒） |
-| `[hash]` | Bundle 内容哈希 |
+| `[hash]` | Bundle 内容哈希（8位） |
+| `[md5]` | 压缩包 MD5（8位） |
 
 ## 生命周期钩子
 
