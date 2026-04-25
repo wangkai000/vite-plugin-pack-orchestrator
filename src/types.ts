@@ -10,7 +10,7 @@ export interface ArchiveOptions {
   fileName?: string;
   /** Archive format (default: 'zip') */
   format?: ArchiveFormat;
-  /** Compression level (0-9 for zip/tar.gz, default: 9) */
+  /** Compression level (0-9, default: 9) */
   compressionLevel?: number;
   /** Glob patterns to include */
   include?: string[];
@@ -18,17 +18,6 @@ export interface ArchiveOptions {
   exclude?: string[];
   /** Output directory for archive file */
   archiveOutDir?: string;
-}
-
-export interface CjsInteropOptions {
-  /** Enable CJS to ESM conversion (default: true) */
-  enabled?: boolean;
-  /** File extensions to process */
-  extensions?: string[];
-  /** Packages to skip conversion */
-  exclude?: (string | RegExp)[];
-  /** Transform require() with dynamic variables to import() */
-  dynamicImport?: boolean;
 }
 
 export interface PluginHooks {
@@ -43,8 +32,6 @@ export interface PluginHooks {
 }
 
 export interface PackOrchestratorOptions {
-  /** CJS interop configuration */
-  cjsInterop?: CjsInteropOptions;
   /** Archive packaging configuration */
   pack?: ArchiveOptions;
   /** Hook callbacks */

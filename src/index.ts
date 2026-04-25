@@ -1,32 +1,19 @@
 import type { Plugin, ResolvedConfig } from 'vite';
-import { transformCjsToEsm } from './cjs-interop';
 import { createArchive } from './archive-pack';
 import type { PackOrchestratorOptions, ArchiveFormat } from './types';
 
 /**
  * Vite Pack Orchestrator - 打包编排器
  * 
- * 全流程控制构建管道：
- * buildStart → transform → generateBundle → closeBundle
- *     ↓           ↓              ↓               ↓
- * onBeforeBuild  CJS→ESM    onBundleGenerated  Archive + onAfterBuild
- * 
+ * 在 vite build 完成后自动将 dist 目录打包成压缩文件
  * 支持格式：ZIP / TAR / TAR.GZ / 7Z
  */
 export default function packOrchestrator(options: PackOrchestratorOptions = {}): Plugin {
   const {
-    cjsInterop = {},
     pack = {},
     hooks = {},
     verbose = false,
   } = options;
-
-  const {
-    enabled: cjsEnabled = true,
-    extensions: cjsExtensions = ['.js', '.cjs'],
-    exclude: cjsExclude = ['node_modules'],
-    dynamicImport = true,
-  } = cjsInterop;
 
   let config: ResolvedConfig;
   let bundleHash: string | undefined;
@@ -43,32 +30,8 @@ export default function packOrchestrator(options: PackOrchestratorOptions = {}):
         await hooks.onBeforeBuild();
       }
       if (verbose) {
-        console.log('[pack-orchestrator] 🎼 编排开始...');
+        console.log('[pack-orchestrator] 开始打包...');
       }
-    },
-
-    async transform(code, id) {
-      if (!cjsEnabled) return null;
-
-      // Skip excluded paths
-      if (cjsExclude.some(pattern => {
-        if (typeof pattern === 'string') return id.includes(pattern);
-        return pattern.test(id);
-      })) {
-        return null;
-      }
-
-      // Check extension
-      const hasTargetExt = cjsExtensions.some(ext => id.endsWith(ext));
-      if (!hasTargetExt) return null;
-
-      const transformed = transformCjsToEsm(code, id, { 
-        enabled: cjsEnabled,
-        extensions: cjsExtensions, 
-        exclude: cjsExclude, 
-        dynamicImport 
-      });
-      return transformed;
     },
 
     async generateBundle(_options, bundle) {
@@ -89,9 +52,9 @@ export default function packOrchestrator(options: PackOrchestratorOptions = {}):
       if (!pack || Object.keys(pack).length === 0) return;
 
       try {
-        await createArchive(pack, config.root, hooks, verbose);
+        await createArchive(pack, config.root, hooks, verbose, bundleHash);
       } catch (error) {
-        console.error('[pack-orchestrator] ❌ 打包失败:', error);
+        console.error('[pack-orchestrator] 打包失败:', error);
         if (hooks.onError) {
           await hooks.onError(error as Error);
         }
@@ -104,4 +67,9 @@ export default function packOrchestrator(options: PackOrchestratorOptions = {}):
 export { packOrchestrator };
 
 // Re-export types
-export type { PackOrchestratorOptions, ArchiveFormat } from './types';
+export type { 
+  PackOrchestratorOptions, 
+  ArchiveFormat,
+  ArchiveOptions,
+  PluginHooks,
+} from './types';

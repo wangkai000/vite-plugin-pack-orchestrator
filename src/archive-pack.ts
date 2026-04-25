@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { createWriteStream } from 'fs';
 import archiver from 'archiver';
 import tar from 'tar';
 import picomatch from 'picomatch';
@@ -208,6 +207,7 @@ async function createTarArchive(
 async function create7zArchive(
   sourceDir: string,
   archivePath: string,
+  filteredFiles: string[],
   verbose?: boolean
 ): Promise<void> {
   const { execa } = await import('execa');
@@ -224,7 +224,12 @@ async function create7zArchive(
     );
   }
 
-  await execa('7z', ['a', archivePath, `${sourceDir}/*`]);
+  // Use filtered files list for 7z
+  const filesToArchive = filteredFiles.length > 0 
+    ? filteredFiles.map(f => path.join(sourceDir, f))
+    : [sourceDir];
+  
+  await execa('7z', ['a', archivePath, ...filesToArchive]);
 
   if (verbose) {
     const size = fs.statSync(archivePath).size;
@@ -239,12 +244,13 @@ export async function createArchive(
   options: ArchiveOptions,
   rootDir: string,
   hooks?: PluginHooks,
-  verbose?: boolean
+  verbose?: boolean,
+  bundleHash?: string
 ): Promise<string> {
   const outDir = options.outDir || 'dist';
   const fileNamePattern = options.fileName || '[name]-[version]';
   const format: ArchiveFormat = options.format || 'zip';
-  const compressionLevel = options.compressionLevel ?? 5;
+  const compressionLevel = options.compressionLevel ?? 9;
   const archiveOutDir = options.archiveOutDir || rootDir;
   
   const sourceDir = path.resolve(rootDir, outDir);
@@ -253,7 +259,7 @@ export async function createArchive(
     throw new Error(`Output directory does not exist: ${sourceDir}`);
   }
 
-  const archiveFileName = generateArchiveFileName(fileNamePattern, rootDir, format);
+  const archiveFileName = generateArchiveFileName(fileNamePattern, rootDir, format, bundleHash);
   const archivePath = path.resolve(archiveOutDir, archiveFileName);
 
   // Ensure output directory exists
@@ -291,7 +297,7 @@ export async function createArchive(
         break;
       
       case '7z':
-        await create7zArchive(sourceDir, archivePath, verbose);
+        await create7zArchive(sourceDir, archivePath, filteredFiles, verbose);
         break;
       
       default:

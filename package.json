@@ -1,7 +1,7 @@
 {
   "name": "vite-plugin-pack-orchestrator",
   "version": "2.0.0",
-  "description": "Vite plugin for orchestrating packaging pipeline with CJS/ESM interop, multi-format archiving (ZIP/TAR/TAR.GZ/7Z), and lifecycle hooks",
+  "description": "Vite plugin for auto-archiving dist folder to ZIP/TAR/7Z after build",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -23,19 +23,12 @@
   "keywords": [
     "vite",
     "plugin",
-    "orchestrator",
-    "pipeline",
-    "hooks",
-    "lifecycle",
     "archive",
     "zip",
     "tar",
     "tar.gz",
     "7z",
-    "cjs",
-    "esm",
-    "interop",
-    "multi-format"
+    "pack"
   ],
   "author": "",
   "license": "MIT",
@@ -45,7 +38,6 @@
   "dependencies": {
     "archiver": "^7.0.1",
     "execa": "^9.5.0",
-    "magic-string": "^0.30.11",
     "picomatch": "^4.0.2",
     "tar": "^7.4.3"
   },
