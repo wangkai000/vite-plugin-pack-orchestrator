@@ -73,16 +73,23 @@ export default defineConfig({
 | `[version]` | package.json version |
 | `[timestamp]` | Unix timestamp (ms) |
 | `[hash]` | Bundle content hash (8 chars) |
-| `[md5]` | Archive file MD5 (8 chars) |
 
 ## Lifecycle Hooks
 
 ```typescript
 hooks: {
-  onBeforeBuild?: () => void;            // Before build starts
-  onBundleGenerated?: (bundle) => void;  // After bundle generated
-  onAfterBuild?: (path, format) => void; // After archive created
-  onError?: (error) => void;            // On error
+  onBeforeBuild?: () => void;                              // Before build starts
+  onBundleGenerated?: (bundle) => void;                    // After bundle generated
+  onAfterBuild?: (path, format, md5) => void;              // After archive created, can get MD5
+  onError?: (error) => void;                               // On error
+}
+```
+
+**Example: rename file in hook**
+```typescript
+onAfterBuild: (path, format, md5) => {
+  console.log(`MD5: ${md5}`);
+  // custom rename logic
 }
 ```
 

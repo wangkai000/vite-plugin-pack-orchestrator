@@ -52,21 +52,18 @@ function generateArchiveFileName(
   pattern: string,
   rootDir: string,
   format: ArchiveFormat,
-  hash?: string,
-  md5?: string
+  hash?: string
 ): string {
   const version = getPackageVersion(rootDir);
   const name = getPackageName(rootDir);
   const timestamp = Date.now().toString();
   const shortHash = hash ? hash.slice(0, 8) : '';
-  const shortMd5 = md5 ? md5.slice(0, 8) : '';
   const extension = getArchiveExtension(format);
 
   let fileName = pattern
     .replace(/\[version\]/g, version)
     .replace(/\[name\]/g, name)
     .replace(/\[hash\]/g, shortHash)
-    .replace(/\[md5\]/g, shortMd5)
     .replace(/\[timestamp\]/g, timestamp);
 
   // Ensure correct extension
@@ -280,9 +277,8 @@ export async function createArchive(
   const allFiles = getFiles(sourceDir, sourceDir);
   const filteredFiles = filterFiles(allFiles, options.include, options.exclude);
 
-  // Create archive with temp name first
-  const tempFileName = generateArchiveFileName(fileNamePattern, rootDir, format, bundleHash);
-  const tempArchivePath = path.resolve(archiveOutDir, tempFileName);
+  const archiveFileName = generateArchiveFileName(fileNamePattern, rootDir, format, bundleHash);
+  const archivePath = path.resolve(archiveOutDir, archiveFileName);
 
   if (verbose) {
     const formatDisplay: Record<ArchiveFormat, string> = {
@@ -291,26 +287,26 @@ export async function createArchive(
       'tar.gz': 'TAR.GZ',
       '7z': '7Z',
     };
-    console.log(`[pack-orchestrator] 📦 创建 ${formatDisplay[format]}: ${tempFileName}`);
+    console.log(`[pack-orchestrator] 📦 创建 ${formatDisplay[format]}: ${archiveFileName}`);
     console.log(`[pack-orchestrator] 📋 包含 ${filteredFiles.length} 个文件`);
   }
 
   try {
     switch (format) {
       case 'zip':
-        await createZipArchive(sourceDir, tempArchivePath, filteredFiles, compressionLevel, verbose);
+        await createZipArchive(sourceDir, archivePath, filteredFiles, compressionLevel, verbose);
         break;
       
       case 'tar':
-        await createTarArchive(sourceDir, tempArchivePath, filteredFiles, false, compressionLevel, verbose);
+        await createTarArchive(sourceDir, archivePath, filteredFiles, false, compressionLevel, verbose);
         break;
       
       case 'tar.gz':
-        await createTarArchive(sourceDir, tempArchivePath, filteredFiles, true, compressionLevel, verbose);
+        await createTarArchive(sourceDir, archivePath, filteredFiles, true, compressionLevel, verbose);
         break;
       
       case '7z':
-        await create7zArchive(sourceDir, tempArchivePath, filteredFiles, verbose);
+        await create7zArchive(sourceDir, archivePath, filteredFiles, verbose);
         break;
       
       default:
@@ -318,37 +314,18 @@ export async function createArchive(
     }
 
     // Calculate MD5 of the archive file
-    const archiveMd5 = calculateFileMd5(tempArchivePath);
+    const archiveMd5 = calculateFileMd5(archivePath);
 
-    // Check if filename contains [md5] placeholder
-    if (fileNamePattern.includes('[md5]')) {
-      const finalFileName = generateArchiveFileName(fileNamePattern, rootDir, format, bundleHash, archiveMd5);
-      const finalArchivePath = path.resolve(archiveOutDir, finalFileName);
-      
-      // Rename file to include MD5
-      fs.renameSync(tempArchivePath, finalArchivePath);
-
-      if (verbose) {
-        console.log(`[pack-orchestrator] ✅ MD5: ${archiveMd5}`);
-      }
-
-      if (hooks?.onAfterBuild) {
-        await hooks.onAfterBuild(finalArchivePath, format);
-      }
-
-      return finalArchivePath;
+    if (verbose) {
+      console.log(`[pack-orchestrator] ✅ MD5: ${archiveMd5}`);
     }
 
     if (hooks?.onAfterBuild) {
-      await hooks.onAfterBuild(tempArchivePath, format);
+      await hooks.onAfterBuild(archivePath, format, archiveMd5);
     }
 
-    return tempArchivePath;
+    return archivePath;
   } catch (error) {
-    // Clean up temp file if exists
-    if (fs.existsSync(tempArchivePath)) {
-      fs.unlinkSync(tempArchivePath);
-    }
     if (hooks?.onError) {
       await hooks.onError(error as Error);
     }

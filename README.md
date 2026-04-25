@@ -73,17 +73,25 @@ export default defineConfig({
 | `[version]` | package.json version |
 | `[timestamp]` | 时间戳（毫秒） |
 | `[hash]` | Bundle 内容哈希（8位） |
-| `[md5]` | 压缩包 MD5（8位） |
 
 ## 生命周期钩子
 
 ```typescript
 hooks: {
-  onBeforeBuild?: () => void;            // 构建开始前
-  onBundleGenerated?: (bundle) => void;  // 产物生成后
-  onAfterBuild?: (path, format) => void; // 打包完成后
-  onError?: (error) => void;            // 出错时
+  onBeforeBuild?: () => void;                              // 构建开始前
+  onBundleGenerated?: (bundle) => void;                    // 产物生成后
+  onAfterBuild?: (path, format, md5) => void;               // 打包完成后，可获取压缩包 MD5
+  onError?: (error) => void;                               // 出错时
 }
+```
+
+**示例：在钩子中重命名文件**
+```typescript
+onAfterBuild: (path, format, md5) => {
+  console.log(`MD5: ${md5}`);
+  // 自定义重命名逻辑
+}
+```
 ```
 
 ## API

@@ -26,7 +26,7 @@ export interface PluginHooks {
   /** Called when bundle is generated */
   onBundleGenerated?: (bundle: Record<string, unknown>) => void | Promise<void>;
   /** Called after archive is created */
-  onAfterBuild?: (archivePath: string, format: ArchiveFormat) => void | Promise<void>;
+  onAfterBuild?: (archivePath: string, format: ArchiveFormat, md5: string) => void | Promise<void>;
   /** Called on error */
   onError?: (error: Error) => void | Promise<void>;
 }
