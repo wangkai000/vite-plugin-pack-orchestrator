@@ -3,3 +3,7 @@ dist/
 .example/
 *.log
 .DS_Store
+*.tar.gz
+*.tar
+*.zip
+*.7z

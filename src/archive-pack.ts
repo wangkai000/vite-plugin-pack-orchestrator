@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import archiver from 'archiver';
-import tar from 'tar';
+import * as tar from 'tar';
 import picomatch from 'picomatch';
 import type { ArchiveOptions, ArchiveFormat, PluginHooks } from './types';
 
@@ -130,7 +130,7 @@ async function createZipArchive(
   verbose?: boolean
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    const output = createWriteStream(archivePath);
+    const output = fs.createWriteStream(archivePath);
     const archive = archiver('zip', {
       zlib: { level: compressionLevel }
     });
@@ -176,7 +176,7 @@ async function createTarArchive(
   verbose?: boolean
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    const output = createWriteStream(archivePath);
+    const output = fs.createWriteStream(archivePath);
     
     const pack = tar.c({
       gzip,
