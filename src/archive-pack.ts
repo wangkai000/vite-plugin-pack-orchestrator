@@ -76,11 +76,15 @@ function generateArchiveFileName(
 }
 
 /**
- * Calculate MD5 hash of a file
+ * Calculate checksums of a file
  */
-function calculateFileMd5(filePath: string): string {
+function calculateChecksums(filePath: string): { md5: string; sha1: string; sha256: string } {
   const buffer = fs.readFileSync(filePath);
-  return crypto.createHash('md5').update(buffer).digest('hex');
+  return {
+    md5: crypto.createHash('md5').update(buffer).digest('hex'),
+    sha1: crypto.createHash('sha1').update(buffer).digest('hex'),
+    sha256: crypto.createHash('sha256').update(buffer).digest('hex'),
+  };
 }
 
 /**
@@ -313,17 +317,19 @@ export async function createArchive(
         throw new Error(`Unsupported archive format: ${format}`);
     }
 
-    // Calculate MD5 of the archive file
-    const archiveMd5 = calculateFileMd5(archivePath);
+    // Calculate checksums of the archive file
+    const checksums = calculateChecksums(archivePath);
 
     if (verbose) {
-      console.log(`[pack-orchestrator] ✅ MD5: ${archiveMd5}`);
+      console.log(`[pack-orchestrator] ✅ MD5: ${checksums.md5}`);
+      console.log(`[pack-orchestrator] ✅ SHA1: ${checksums.sha1}`);
+      console.log(`[pack-orchestrator] ✅ SHA256: ${checksums.sha256}`);
     }
 
     let finalPath = archivePath;
 
     if (hooks?.onAfterBuild) {
-      const newPath = await hooks.onAfterBuild(archivePath, format, archiveMd5);
+      const newPath = await hooks.onAfterBuild(archivePath, format, checksums);
       if (newPath && newPath !== archivePath) {
         // Rename file to new path
         const dir = path.dirname(archivePath);

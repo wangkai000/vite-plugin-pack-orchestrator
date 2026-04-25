@@ -2,7 +2,7 @@
 
 English | [简体中文](./README.md)
 
-> A lightweight Vite plugin: auto-archive dist folder to ZIP / TAR / 7Z after `vite build`
+> A lightweight Vite plugin: auto-archive dist folder to ZIP / TAR / 7Z after `vite build`, with MD5 / SHA1 / SHA256 checksums and auto-rename support
 
 **Features:**
 - 📦 Support ZIP / TAR / TAR.GZ / 7Z formats
@@ -78,19 +78,27 @@ export default defineConfig({
 
 ```typescript
 hooks: {
-  onBeforeBuild?: () => void;                              // Before build starts
-  onBundleGenerated?: (bundle) => void;                    // After bundle generated
-  onAfterBuild?: (path, format, md5) => string | void;     // After archive created, return new path to rename
-  onError?: (error) => void;                               // On error
+  onBeforeBuild?: () => void;                                          // Before build starts
+  onBundleGenerated?: (bundle) => void;                               // After bundle generated
+  onAfterBuild?: (path, format, checksums) => string | void;          // After archive created, return new path to rename
+  onError?: (error) => void;                                          // On error
 }
 ```
 
-**Example: return new path to rename**
+**checksums object:**
 ```typescript
-onAfterBuild: (path, format, md5) => {
+{
+  md5: string;    // 32 chars MD5
+  sha1: string;  // 40 chars SHA-1
+  sha256: string; // 64 chars SHA-256
+}
+```
+
+**Example: return new path to rename if needed**
+```typescript
+onAfterBuild: (path, format, checksums) => {
   // Return new filename to auto rename
-  return path.replace(/\.(\w+)$/, `-${md5.slice(0, 8)}.$1`);
-  // or full path: /some/path/app-1.0.0-md5.tar.gz
+  return path.replace(/\.(\w+)$/, `-${checksums.sha1.slice(0, 8)}.$1`);
 }
 ```
 

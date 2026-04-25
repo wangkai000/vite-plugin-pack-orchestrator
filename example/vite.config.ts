@@ -14,7 +14,7 @@ export default defineConfig({
       hooks: {
         onBeforeBuild: () => console.log('开始构建...'),
         onBundleGenerated: () => console.log('Bundle 生成完成'),
-        onAfterBuild: (archivePath, format) => 
+        onAfterBuild: (archivePath, format, checksums) => 
           console.log(`✅ ${format.toUpperCase()} 创建成功: ${archivePath}`),
         onError: (error) => console.error('❌ 构建失败:', error.message),
       },

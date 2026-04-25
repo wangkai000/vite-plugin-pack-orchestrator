@@ -2,7 +2,7 @@
 
 [English](./README.en.md) | **简体中文**
 
-> 一个精简Vite 插件：在 `vite build` 完成后自动将 dist 打包成 ZIP / TAR / 7Z
+> 一个精简的 Vite 插件：`vite build` 完成后自动将 dist 打包为 ZIP / TAR / 7Z，同时计算 MD5 / SHA1 / SHA256 校验和，支持自动重命名
 
 **功能：**
 - 📦 支持 ZIP / TAR / TAR.GZ / 7Z 四种格式
@@ -78,19 +78,27 @@ export default defineConfig({
 
 ```typescript
 hooks: {
-  onBeforeBuild?: () => void;                              // 构建开始前
-  onBundleGenerated?: (bundle) => void;                    // 产物生成后
-  onAfterBuild?: (path, format, md5) => string | void;      // 打包完成后，可返回新路径重命名
-  onError?: (error) => void;                               // 出错时
+  onBeforeBuild?: () => void;                                          // 构建开始前
+  onBundleGenerated?: (bundle) => void;                                // 产物生成后
+  onAfterBuild?: (path, format, checksums) => string | void;           // 打包完成后，如需重命名则返回新路径
+  onError?: (error) => void;                                          // 出错时
 }
 ```
 
-**示例：返回新路径自动重命名**
+**checksums 对象：**
 ```typescript
-onAfterBuild: (path, format, md5) => {
-  // 返回新文件名，自动重命名
-  return path.replace(/\.(\w+)$/, `-${md5.slice(0, 8)}.$1`);
-  // 或返回完整路径：/some/path/app-1.0.0-md5.tar.gz
+{
+  md5: string;    // 32位 MD5
+  sha1: string;   // 40位 SHA-1
+  sha256: string; // 64位 SHA-256
+}
+```
+
+**示例：如需重命名则返回新路径**
+```typescript
+onAfterBuild: (path, format, checksums) => {
+  // 返回新文件名即可自动重命名
+  return path.replace(/\.(\w+)$/, `-${checksums.sha1.slice(0, 8)}.$1`);
 }
 ```
 ```

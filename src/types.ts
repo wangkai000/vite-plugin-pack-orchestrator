@@ -20,6 +20,16 @@ export interface ArchiveOptions {
   archiveOutDir?: string;
 }
 
+/** 压缩包校验和 */
+export interface ArchiveChecksums {
+  /** MD5 校验和（32位） */
+  md5: string;
+  /** SHA-1 校验和（40位） */
+  sha1: string;
+  /** SHA-256 校验和（64位） */
+  sha256: string;
+}
+
 export interface PluginHooks {
   /** Called before build starts */
   onBeforeBuild?: () => void | Promise<void>;
@@ -29,10 +39,10 @@ export interface PluginHooks {
    * Called after archive is created
    * @param archivePath - 压缩包路径
    * @param format - 压缩格式
-   * @param md5 - 压缩包 MD5
+   * @param checksums - 压缩包校验和（md5/sha1/sha256）
    * @returns 返回新路径则自动重命名，如返回空则保持原名
    */
-  onAfterBuild?: (archivePath: string, format: ArchiveFormat, md5: string) => string | void | Promise<string | void>;
+  onAfterBuild?: (archivePath: string, format: ArchiveFormat, checksums: ArchiveChecksums) => string | void | Promise<string | void>;
   /** Called on error */
   onError?: (error: Error) => void | Promise<void>;
 }
