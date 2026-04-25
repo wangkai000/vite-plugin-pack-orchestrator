@@ -1,0 +1,11 @@
+{
+  "name": "vite-plugin-zip-pack-example",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "^5.3.0"
+  }
+}
