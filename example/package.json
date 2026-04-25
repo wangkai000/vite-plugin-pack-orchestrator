@@ -7,5 +7,8 @@
   },
   "devDependencies": {
     "vite": "^5.3.0"
+  },
+  "dependencies": {
+    "vite-plugin-pack-orchestrator": "^1.0.1"
   }
 }

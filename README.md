@@ -1,6 +1,6 @@
 # Vite Plugin Pack Orchestrator
 
-[English](./README.en.md) | **简体中文**
+[English](https://github.com/wangkai000/vite-plugin-pack-orchestrator/blob/main/README.en.md) | **简体中文**
 
 > 一个精简的 Vite 插件：vite build 完成后自动将 dist 打包为 ZIP / TAR / 7Z，同时计算 MD5 / SHA1 / SHA256 校验和，支持自动重命名。
 
@@ -20,18 +20,16 @@ export default {
   plugins: [
     orchestrator({
       pack: {
-        outDir: 'dist',                    // 监听目录，默认 'dist'
+        outDir: 'dist',                    // 要打包的源目录，默认 'dist'
         fileName: 'app-[version]-[timestamp]', // 支持 [name] [version] [timestamp] [hash]
         format: 'zip',                    // zip | tar | tar.gz | 7z
         compressionLevel: 9,              // 0-9
-        exclude: ['**/*.map'],
+        exclude: ['**/*.map'],            // 排除的文件
+        include: ['**/*.js'],             // 包含的文件（可选）
+        archiveOutDir: './output',        // 压缩包输出目录，不写默认项目根目录
       },
-      hooks: {
-        onBeforeBuild: () => {},
-        onBundleGenerated: (bundle) => {},
-        onAfterBuild: (path, format, checksums) => {},
-        onError: (error) => {},
-      },
+      hooks: { ... },
+      verbose: true,                      // 开启详细日志
     }),
   ],
 };

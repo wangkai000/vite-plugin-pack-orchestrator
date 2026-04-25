@@ -1,6 +1,6 @@
 # Vite Plugin Pack Orchestrator
 
-**简体中文** | [English](./README.en.md)
+[简体中文](https://github.com/wangkai000/vite-plugin-pack-orchestrator/blob/main/README.md) | **English**
 
 > A lightweight Vite plugin: auto-pack dist into ZIP/TAR/7Z after `vite build`, with MD5/SHA1/SHA256 checksums and auto-rename support
 
@@ -20,18 +20,16 @@ export default {
   plugins: [
     orchestrator({
       pack: {
-        outDir: 'dist',
+        outDir: 'dist',                    // Source dir to archive, default 'dist'
         fileName: 'app-[version]-[timestamp]', // [name] [version] [timestamp] [hash]
         format: 'zip',                          // zip | tar | tar.gz | 7z
         compressionLevel: 9,                   // 0-9
-        exclude: ['**/*.map'],
+        exclude: ['**/*.map'],                // Files to exclude
+        include: ['**/*.js'],                 // Files to include (optional)
+        archiveOutDir: './output',            // Archive output dir, defaults to project root
       },
-      hooks: {
-        onBeforeBuild: () => {},
-        onBundleGenerated: (bundle) => {},
-        onAfterBuild: (path, format, checksums) => {},
-        onError: (error) => {},
-      },
+      hooks: { ... },
+      verbose: true,                          // Enable verbose logging
     }),
   ],
 };
