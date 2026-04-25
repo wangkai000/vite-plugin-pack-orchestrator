@@ -25,8 +25,14 @@ export interface PluginHooks {
   onBeforeBuild?: () => void | Promise<void>;
   /** Called when bundle is generated */
   onBundleGenerated?: (bundle: Record<string, unknown>) => void | Promise<void>;
-  /** Called after archive is created */
-  onAfterBuild?: (archivePath: string, format: ArchiveFormat, md5: string) => void | Promise<void>;
+  /** 
+   * Called after archive is created
+   * @param archivePath - 压缩包路径
+   * @param format - 压缩格式
+   * @param md5 - 压缩包 MD5
+   * @returns 返回新路径则自动重命名，如返回空则保持原名
+   */
+  onAfterBuild?: (archivePath: string, format: ArchiveFormat, md5: string) => string | void | Promise<string | void>;
   /** Called on error */
   onError?: (error: Error) => void | Promise<void>;
 }

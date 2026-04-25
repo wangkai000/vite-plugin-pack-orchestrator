@@ -80,16 +80,17 @@ export default defineConfig({
 hooks: {
   onBeforeBuild?: () => void;                              // 构建开始前
   onBundleGenerated?: (bundle) => void;                    // 产物生成后
-  onAfterBuild?: (path, format, md5) => void;               // 打包完成后，可获取压缩包 MD5
+  onAfterBuild?: (path, format, md5) => string | void;      // 打包完成后，可返回新路径重命名
   onError?: (error) => void;                               // 出错时
 }
 ```
 
-**示例：在钩子中重命名文件**
+**示例：返回新路径自动重命名**
 ```typescript
 onAfterBuild: (path, format, md5) => {
-  console.log(`MD5: ${md5}`);
-  // 自定义重命名逻辑
+  // 返回新文件名，自动重命名
+  return path.replace(/\.(\w+)$/, `-${md5.slice(0, 8)}.$1`);
+  // 或返回完整路径：/some/path/app-1.0.0-md5.tar.gz
 }
 ```
 ```

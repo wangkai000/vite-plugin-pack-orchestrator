@@ -80,16 +80,17 @@ export default defineConfig({
 hooks: {
   onBeforeBuild?: () => void;                              // Before build starts
   onBundleGenerated?: (bundle) => void;                    // After bundle generated
-  onAfterBuild?: (path, format, md5) => void;              // After archive created, can get MD5
+  onAfterBuild?: (path, format, md5) => string | void;     // After archive created, return new path to rename
   onError?: (error) => void;                               // On error
 }
 ```
 
-**Example: rename file in hook**
+**Example: return new path to rename**
 ```typescript
 onAfterBuild: (path, format, md5) => {
-  console.log(`MD5: ${md5}`);
-  // custom rename logic
+  // Return new filename to auto rename
+  return path.replace(/\.(\w+)$/, `-${md5.slice(0, 8)}.$1`);
+  // or full path: /some/path/app-1.0.0-md5.tar.gz
 }
 ```
 

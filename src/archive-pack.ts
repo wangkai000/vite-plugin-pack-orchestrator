@@ -320,11 +320,24 @@ export async function createArchive(
       console.log(`[pack-orchestrator] ✅ MD5: ${archiveMd5}`);
     }
 
+    let finalPath = archivePath;
+
     if (hooks?.onAfterBuild) {
-      await hooks.onAfterBuild(archivePath, format, archiveMd5);
+      const newPath = await hooks.onAfterBuild(archivePath, format, archiveMd5);
+      if (newPath && newPath !== archivePath) {
+        // Rename file to new path
+        const dir = path.dirname(archivePath);
+        const newFileName = path.basename(newPath);
+        const finalFilePath = path.isAbsolute(newPath) ? newPath : path.resolve(dir, newFileName);
+        fs.renameSync(archivePath, finalFilePath);
+        finalPath = finalFilePath;
+        if (verbose) {
+          console.log(`[pack-orchestrator] 🔄 重命名: ${path.basename(finalFilePath)}`);
+        }
+      }
     }
 
-    return archivePath;
+    return finalPath;
   } catch (error) {
     if (hooks?.onError) {
       await hooks.onError(error as Error);
