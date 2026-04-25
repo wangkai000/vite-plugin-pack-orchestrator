@@ -1,26 +1,25 @@
 import { defineConfig } from 'vite';
 import orchestrator from '../dist/index.js';
 
+const formats = ['zip', 'tar', 'tar.gz', '7z'] as const;
+
 export default defineConfig({
-  plugins: [
+  plugins: formats.map(format =>
     orchestrator({
       pack: {
         outDir: 'dist',
-        fileName: 'app-[version]-[timestamp]',
-        format: 'tar.gz',
+        fileName: `app-[version]-[timestamp].${format === 'tar.gz' ? 'tar.gz' : format}`,
+        format,
         compressionLevel: 9,
         exclude: ['**/*.map', '**/.DS_Store'],
       },
       hooks: {
-        onBeforeBuild: () => console.log('开始构建...'),
-        onBundleGenerated: () => console.log('Bundle 生成完成'),
-        onAfterBuild: (archivePath, format, checksums) => 
-          console.log(`✅ ${format.toUpperCase()} 创建成功: ${archivePath}`),
-        onError: (error) => console.error('❌ 构建失败:', error.message),
+        onAfterBuild: (archivePath, fmt, checksums) =>
+          console.log(`✅ ${fmt.toUpperCase()} | MD5: ${checksums.md5.slice(0, 8)}... | ${archivePath}`),
       },
       verbose: true,
-    }),
-  ],
+    })
+  ),
   build: {
     outDir: 'dist',
     emptyOutDir: true,

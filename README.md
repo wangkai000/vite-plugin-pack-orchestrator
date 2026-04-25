@@ -2,14 +2,7 @@
 
 [English](./README.en.md) | **简体中文**
 
-> 一个精简的 Vite 插件：`vite build` 完成后自动将 dist 打包为 ZIP / TAR / 7Z，同时计算 MD5 / SHA1 / SHA256 校验和，支持自动重命名
-
-**功能：**
-- 📦 支持 ZIP / TAR / TAR.GZ / 7Z 四种格式
-- 🎣 生命周期钩子：`beforeBuild` / `bundleGenerated` / `afterBuild` / `error`
-- ⚙️ 灵活配置：压缩级别、文件过滤、输出目录
-
----
+> 一个精简的 Vite 插件：vite build 完成后自动将 dist 打包为 ZIP / TAR / 7Z，同时计算 MD5 / SHA1 / SHA256 校验和，支持自动重命名。
 
 ## 安装
 
@@ -17,111 +10,52 @@
 npm install vite-plugin-pack-orchestrator
 ```
 
-## 快速开始
+## 使用
 
 ```typescript
 // vite.config.ts
-import { defineConfig } from 'vite';
 import orchestrator from 'vite-plugin-pack-orchestrator';
 
-export default defineConfig({
+export default {
   plugins: [
     orchestrator({
       pack: {
-        outDir: 'dist',
-        fileName: 'app-[version]-[timestamp]',
-        format: 'zip',
-        compressionLevel: 9,
+        outDir: 'dist',                    // 监听目录，默认 'dist'
+        fileName: 'app-[version]-[timestamp]', // 支持 [name] [version] [timestamp] [hash]
+        format: 'zip',                    // zip | tar | tar.gz | 7z
+        compressionLevel: 9,              // 0-9
         exclude: ['**/*.map'],
       },
       hooks: {
-        onBeforeBuild: () => console.log('开始构建...'),
-        onBundleGenerated: (bundle) => console.log(`${Object.keys(bundle).length} 个文件`),
-        onAfterBuild: (path, format) => console.log(`完成: ${path}`),
+        onBeforeBuild: () => {},
+        onBundleGenerated: (bundle) => {},
+        onAfterBuild: (path, format, checksums) => {},
+        onError: (error) => {},
       },
-      verbose: true,
     }),
   ],
-});
+};
 ```
 
-## 支持的格式
+## 格式
 
 | 格式 | 说明 | 依赖 |
-|:----:|------|:-----:|
+|:----:|------|------|
 | `zip` | 标准 ZIP | 无 |
-| `tar` | TAR 归档 | 无 |
-| `tar.gz` | Gzip 压缩 TAR | 无 |
-| `7z` | 7-Zip 高压缩 | 需安装 7-Zip |
+| `tar` / `tar.gz` | Gzip 压缩 TAR | 无 |
+| `7z` | 高压缩 7-Zip | 无（内置） |
 
-## 压缩级别
+## 钩子
 
-`compressionLevel`：范围 `0`–`9`
+`onAfterBuild` 可返回新路径实现重命名：
 
-| 级别 | 效果 | 速度 | 场景 |
-|:----:|------|------|------|
-| `0` | 仅打包 | ⚡ 最快 | CI 临时 |
-| `1-3` | 低压缩 | 🚀 快 | 开发 |
-| `4-6` | 中等 | 🏃 适中 | 日常 |
-| `7-9` | 高压缩 | 🐢 较慢 | 发布 |
-
-## 文件名占位符
-
-| 占位符 | 说明 |
-|:------:|------|
-| `[name]` | package.json name |
-| `[version]` | package.json version |
-| `[timestamp]` | 时间戳（毫秒） |
-| `[hash]` | Bundle 内容哈希（8位） |
-
-## 生命周期钩子
-
-```typescript
-hooks: {
-  onBeforeBuild?: () => void;                                          // 构建开始前
-  onBundleGenerated?: (bundle) => void;                                // 产物生成后
-  onAfterBuild?: (path, format, checksums) => string | void;           // 打包完成后，如需重命名则返回新路径
-  onError?: (error) => void;                                          // 出错时
-}
-```
-
-**checksums 对象：**
-```typescript
-{
-  md5: string;    // 32位 MD5
-  sha1: string;   // 40位 SHA-1
-  sha256: string; // 64位 SHA-256
-}
-```
-
-**示例：如需重命名则返回新路径**
 ```typescript
 onAfterBuild: (path, format, checksums) => {
-  // 返回新文件名即可自动重命名
   return path.replace(/\.(\w+)$/, `-${checksums.sha1.slice(0, 8)}.$1`);
 }
 ```
-```
 
-## API
-
-```typescript
-import orchestrator, { PackOrchestratorOptions, ArchiveFormat } from 'vite-plugin-pack-orchestrator';
-
-orchestrator({
-  pack: {
-    outDir?: string;             // 默认 'dist'
-    fileName?: string;          // 默认 '[name]-[version]'
-    format?: ArchiveFormat;     // 默认 'zip'
-    compressionLevel?: number;    // 默认 9
-    include?: string[];          // 包含模式
-    exclude?: string[];         // 排除模式
-    archiveOutDir?: string;      // 归档输出目录
-  };
-  hooks?: PluginHooks;
-  verbose?: boolean;
-})
-```
+`checksums` 包含：`md5`、`sha1`、`sha256`
 
 ## License
 

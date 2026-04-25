@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import archiver from 'archiver';
 import * as tar from 'tar';
 import picomatch from 'picomatch';
+import _7z from '7zip-min';
 import type { ArchiveOptions, ArchiveFormat, PluginHooks } from './types';
 
 /**
@@ -215,7 +216,7 @@ async function createTarArchive(
 }
 
 /**
- * Create 7z archive (requires 7z to be installed)
+ * Create 7z archive using 7zip-min (no system 7z required)
  */
 async function create7zArchive(
   sourceDir: string,
@@ -223,30 +224,26 @@ async function create7zArchive(
   filteredFiles: string[],
   verbose?: boolean
 ): Promise<void> {
-  const { execa } = await import('execa');
-  
-  // Check if 7z is available
+  // 7zip-min packs an entire directory, so copy filtered files to a temp dir first
+  const tmpDir = path.join(sourceDir, '.__7z_tmp__');
+  fs.mkdirSync(tmpDir, { recursive: true });
+
   try {
-    await execa('7z', ['--help']);
-  } catch {
-    throw new Error(
-      '7z command not found. Please install 7-Zip:\n' +
-      '  Windows: choco install 7zip or download from https://www.7-zip.org/\n' +
-      '  macOS: brew install p7zip\n' +
-      '  Linux: apt install p7zip-full'
-    );
-  }
+    for (const file of filteredFiles) {
+      const src = path.join(sourceDir, file);
+      const dest = path.join(tmpDir, file);
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.copyFileSync(src, dest);
+    }
 
-  // Use filtered files list for 7z
-  const filesToArchive = filteredFiles.length > 0 
-    ? filteredFiles.map(f => path.join(sourceDir, f))
-    : [sourceDir];
-  
-  await execa('7z', ['a', archivePath, ...filesToArchive]);
+    await _7z.pack(tmpDir, archivePath);
 
-  if (verbose) {
-    const size = fs.statSync(archivePath).size;
-    console.log(`[pack-orchestrator] ✅ 7Z 完成: ${archivePath} (${(size / 1024).toFixed(2)} KB)`);
+    if (verbose) {
+      const size = fs.statSync(archivePath).size;
+      console.log(`[pack-orchestrator] ✅ 7Z 完成: ${archivePath} (${(size / 1024).toFixed(2)} KB)`);
+    }
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 }
 
