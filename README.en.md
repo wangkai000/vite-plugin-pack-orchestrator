@@ -2,13 +2,12 @@
 
 English | [简体中文](./README.md)
 
-> 🎼 Pack Orchestrator - Auto-archive dist folder to ZIP/TAR/7Z after build
+> Vite plugin: auto-archive dist folder to ZIP / TAR / 7Z after `vite build`
 
-A lightweight Vite plugin that automatically archives your build output:
-
-- 📦 **Multi-format** — ZIP / TAR / TAR.GZ / 7Z
-- 🎣 **Lifecycle hooks** — Support `beforeBuild`, `bundleGenerated`, `afterBuild`, `error` callbacks
-- ⚙️ **Flexible** — Compression level, file filtering, custom output dir
+**Features:**
+- 📦 Support ZIP / TAR / TAR.GZ / 7Z formats
+- 🎣 Lifecycle hooks: `beforeBuild` / `bundleGenerated` / `afterBuild` / `error`
+- ⚙️ Flexible: compression level, file filtering, custom output
 
 ---
 
@@ -48,23 +47,23 @@ export default defineConfig({
 
 ## Supported Formats
 
-| Format | Description | External Dependency |
-|:------:|-------------|:-------------------:|
+| Format | Description | Dependency |
+|:------:|-------------|:----------:|
 | `zip` | Standard ZIP | None |
-| `tar` | Uncompressed TAR | None |
+| `tar` | TAR archive | None |
 | `tar.gz` | Gzipped TAR | None |
-| `7z` | 7-Zip | Requires 7-Zip installed |
+| `7z` | 7-Zip | Requires 7-Zip |
 
 ## Compression Level
 
-`compressionLevel` controls compression effort, range `0`–`9`:
+`compressionLevel`: range `0`–`9`
 
 | Level | Effect | Speed | Use Case |
 |:-----:|--------|-------|----------|
-| `0` | No compression, archive only | ⚡ Fastest | CI temp |
-| `1-3` | Low compression | 🚀 Fast | Dev |
-| `4-6` | Medium compression | 🏃 Normal | Daily release |
-| `7-9` | High compression | 🐢 Slow | Production |
+| `0` | Archive only | ⚡ Fastest | CI temp |
+| `1-3` | Low | 🚀 Fast | Dev |
+| `4-6` | Medium | 🏃 Normal | Daily |
+| `7-9` | High | 🐢 Slow | Release |
 
 ## Placeholders
 
@@ -86,31 +85,24 @@ hooks: {
 }
 ```
 
-## Complete API
+## API
 
 ```typescript
-import orchestrator, {
-  type PackOrchestratorOptions,
-  type ArchiveFormat,
-} from 'vite-plugin-pack-orchestrator';
-```
+import orchestrator, { PackOrchestratorOptions, ArchiveFormat } from 'vite-plugin-pack-orchestrator';
 
-### PackOrchestratorOptions
-
-```typescript
-interface PackOrchestratorOptions {
-  pack?: {
-    outDir?: string;             // Output directory, default 'dist'
-    fileName?: string;           // Archive file name, default '[name]-[version]'
-    format?: ArchiveFormat;      // Archive format, default 'zip'
-    compressionLevel?: number;    // Compression level 0-9, default 9
-    include?: string[];           // Glob patterns to include
-    exclude?: string[];          // Glob patterns to exclude
-    archiveOutDir?: string;       // Archive output directory
+orchestrator({
+  pack: {
+    outDir?: string;             // Default 'dist'
+    fileName?: string;          // Default '[name]-[version]'
+    format?: ArchiveFormat;     // Default 'zip'
+    compressionLevel?: number;    // Default 9
+    include?: string[];          // Glob patterns to include
+    exclude?: string[];         // Glob patterns to exclude
+    archiveOutDir?: string;     // Archive output directory
   };
   hooks?: PluginHooks;
   verbose?: boolean;
-}
+})
 ```
 
 ## License

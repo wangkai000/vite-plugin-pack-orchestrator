@@ -2,13 +2,12 @@
 
 [English](./README.en.md) | **简体中文**
 
-> 🎼 打包编排器 — 构建后自动将 dist 归档为压缩文件
+> Vite 插件：在 `vite build` 完成后自动将 dist 打包成 ZIP / TAR / 7Z
 
-一个轻量的 Vite 插件，在 `vite build` 完成后自动将构建产物打包成压缩文件：
-
-- 📦 **多格式支持** — ZIP / TAR / TAR.GZ / 7Z
-- 🎣 **生命周期钩子** — 支持 `beforeBuild`、`bundleGenerated`、`afterBuild`、`error` 回调
-- ⚙️ **灵活配置** — 压缩级别、文件过滤、输出目录
+**功能：**
+- 📦 支持 ZIP / TAR / TAR.GZ / 7Z 四种格式
+- 🎣 生命周期钩子：`beforeBuild` / `bundleGenerated` / `afterBuild` / `error`
+- ⚙️ 灵活配置：压缩级别、文件过滤、输出目录
 
 ---
 
@@ -46,32 +45,32 @@ export default defineConfig({
 });
 ```
 
-## 支持的打包格式
+## 支持的格式
 
-| 格式 | 说明 | 外部依赖 |
-|:----:|------|:--------:|
-| `zip` | 标准 ZIP 压缩 | 无 |
-| `tar` | 未压缩 TAR 归档 | 无 |
+| 格式 | 说明 | 依赖 |
+|:----:|------|:-----:|
+| `zip` | 标准 ZIP | 无 |
+| `tar` | TAR 归档 | 无 |
 | `tar.gz` | Gzip 压缩 TAR | 无 |
-| `7z` | 7-Zip 高压缩比 | 需安装 7-Zip |
+| `7z` | 7-Zip 高压缩 | 需安装 7-Zip |
 
 ## 压缩级别
 
-`compressionLevel` 控制压缩程度，范围 `0`–`9`：
+`compressionLevel`：范围 `0`–`9`
 
-| 级别 | 效果 | 速度 | 适用场景 |
-|:----:|------|------|----------|
-| `0` | 无压缩，仅打包 | ⚡ 最快 | CI 临时归档 |
-| `1-3` | 低压缩 | 🚀 快 | 本地调试 |
-| `4-6` | 中等压缩 | 🏃 适中 | 日常发布 |
-| `7-9` | 高压缩 | 🐢 较慢 | 正式分发 |
+| 级别 | 效果 | 速度 | 场景 |
+|:----:|------|------|------|
+| `0` | 仅打包 | ⚡ 最快 | CI 临时 |
+| `1-3` | 低压缩 | 🚀 快 | 开发 |
+| `4-6` | 中等 | 🏃 适中 | 日常 |
+| `7-9` | 高压缩 | 🐢 较慢 | 发布 |
 
 ## 文件名占位符
 
 | 占位符 | 说明 |
 |:------:|------|
-| `[name]` | package.json 中的 name |
-| `[version]` | package.json 中的 version |
+| `[name]` | package.json name |
+| `[version]` | package.json version |
 | `[timestamp]` | 时间戳（毫秒） |
 | `[hash]` | Bundle 内容哈希 |
 
@@ -86,31 +85,24 @@ hooks: {
 }
 ```
 
-## 完整 API
+## API
 
 ```typescript
-import orchestrator, {
-  type PackOrchestratorOptions,
-  type ArchiveFormat,
-} from 'vite-plugin-pack-orchestrator';
-```
+import orchestrator, { PackOrchestratorOptions, ArchiveFormat } from 'vite-plugin-pack-orchestrator';
 
-### PackOrchestratorOptions
-
-```typescript
-interface PackOrchestratorOptions {
-  pack?: {
-    outDir?: string;             // 构建产物目录，默认 'dist'
-    fileName?: string;          // 归档文件名，默认 '[name]-[version]'
-    format?: ArchiveFormat;     // 归档格式，默认 'zip'
-    compressionLevel?: number;  // 压缩级别 0-9，默认 9
-    include?: string[];         // 包含的 glob 模式
-    exclude?: string[];         // 排除的 glob 模式
-    archiveOutDir?: string;     // 归档文件输出目录
+orchestrator({
+  pack: {
+    outDir?: string;             // 默认 'dist'
+    fileName?: string;          // 默认 '[name]-[version]'
+    format?: ArchiveFormat;     // 默认 'zip'
+    compressionLevel?: number;    // 默认 9
+    include?: string[];          // 包含模式
+    exclude?: string[];         // 排除模式
+    archiveOutDir?: string;      // 归档输出目录
   };
   hooks?: PluginHooks;
   verbose?: boolean;
-}
+})
 ```
 
 ## License
