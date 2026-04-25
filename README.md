@@ -2,7 +2,7 @@
 
 [English](./README.en.md) | **简体中文**
 
-> Vite 插件：在 `vite build` 完成后自动将 dist 打包成 ZIP / TAR / 7Z
+> 一个精简Vite 插件：在 `vite build` 完成后自动将 dist 打包成 ZIP / TAR / 7Z
 
 **功能：**
 - 📦 支持 ZIP / TAR / TAR.GZ / 7Z 四种格式

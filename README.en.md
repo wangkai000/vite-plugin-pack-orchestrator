@@ -2,12 +2,12 @@
 
 English | [简体中文](./README.md)
 
-> Vite plugin: auto-archive dist folder to ZIP / TAR / 7Z after `vite build`
+> A lightweight Vite plugin: auto-archive dist folder to ZIP / TAR / 7Z after `vite build`
 
 **Features:**
 - 📦 Support ZIP / TAR / TAR.GZ / 7Z formats
 - 🎣 Lifecycle hooks: `beforeBuild` / `bundleGenerated` / `afterBuild` / `error`
-- ⚙️ Flexible: compression level, file filtering, custom output
+- ⚙️ Flexible: compression level, file filtering, output directory
 
 ---
 
@@ -98,7 +98,7 @@ orchestrator({
     compressionLevel?: number;    // Default 9
     include?: string[];          // Glob patterns to include
     exclude?: string[];         // Glob patterns to exclude
-    archiveOutDir?: string;     // Archive output directory
+    archiveOutDir?: string;      // Archive output directory
   };
   hooks?: PluginHooks;
   verbose?: boolean;
