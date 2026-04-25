@@ -58,13 +58,13 @@ function generateArchiveFileName(
   const version = getPackageVersion(rootDir);
   const name = getPackageName(rootDir);
   const timestamp = Date.now().toString();
-  const shortHash = hash ? hash.slice(0, 8) : '';
+  const fullHash = hash || '';
   const extension = getArchiveExtension(format);
 
   let fileName = pattern
     .replace(/\[version\]/g, version)
     .replace(/\[name\]/g, name)
-    .replace(/\[hash\]/g, shortHash)
+    .replace(/\[hash(?::(\d+))?\]/g, (_, len) => fullHash.slice(0, len ? parseInt(len) : undefined))
     .replace(/\[timestamp\]/g, timestamp);
 
   // Ensure correct extension
@@ -140,8 +140,7 @@ async function createZipArchive(
   sourceDir: string,
   archivePath: string,
   filteredFiles: string[],
-  compressionLevel: number,
-  verbose?: boolean
+  compressionLevel: number
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const output = fs.createWriteStream(archivePath);
@@ -150,10 +149,6 @@ async function createZipArchive(
     });
 
     output.on('close', () => {
-      const size = archive.pointer();
-      if (verbose) {
-        console.log(`[pack-orchestrator] ✅ ZIP 完成: ${archivePath} (${(size / 1024).toFixed(2)} KB)`);
-      }
       resolve();
     });
 
@@ -186,8 +181,7 @@ async function createTarArchive(
   archivePath: string,
   filteredFiles: string[],
   gzip: boolean,
-  compressionLevel: number,
-  verbose?: boolean
+  compressionLevel: number
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const output = fs.createWriteStream(archivePath);
@@ -202,11 +196,6 @@ async function createTarArchive(
     pack.pipe(output);
 
     output.on('close', () => {
-      const size = fs.statSync(archivePath).size;
-      if (verbose) {
-        const format = gzip ? 'TAR.GZ' : 'TAR';
-        console.log(`[pack-orchestrator] ✅ ${format} 完成: ${archivePath} (${(size / 1024).toFixed(2)} KB)`);
-      }
       resolve();
     });
 
@@ -221,8 +210,7 @@ async function createTarArchive(
 async function create7zArchive(
   sourceDir: string,
   archivePath: string,
-  filteredFiles: string[],
-  verbose?: boolean
+  filteredFiles: string[]
 ): Promise<void> {
   // 7zip-min packs an entire directory, so copy filtered files to a temp dir first
   const tmpDir = path.join(sourceDir, '.__7z_tmp__');
@@ -237,11 +225,6 @@ async function create7zArchive(
     }
 
     await _7z.pack(tmpDir, archivePath);
-
-    if (verbose) {
-      const size = fs.statSync(archivePath).size;
-      console.log(`[pack-orchestrator] ✅ 7Z 完成: ${archivePath} (${(size / 1024).toFixed(2)} KB)`);
-    }
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -254,7 +237,6 @@ export async function createArchive(
   options: ArchiveOptions,
   rootDir: string,
   hooks?: PluginHooks,
-  verbose?: boolean,
   bundleHash?: string
 ): Promise<string> {
   const outDir = options.outDir || 'dist';
@@ -281,33 +263,22 @@ export async function createArchive(
   const archiveFileName = generateArchiveFileName(fileNamePattern, rootDir, format, bundleHash);
   const archivePath = path.resolve(archiveOutDir, archiveFileName);
 
-  if (verbose) {
-    const formatDisplay: Record<ArchiveFormat, string> = {
-      'zip': 'ZIP',
-      'tar': 'TAR',
-      'tar.gz': 'TAR.GZ',
-      '7z': '7Z',
-    };
-    console.log(`[pack-orchestrator] 📦 创建 ${formatDisplay[format]}: ${archiveFileName}`);
-    console.log(`[pack-orchestrator] 📋 包含 ${filteredFiles.length} 个文件`);
-  }
-
   try {
     switch (format) {
       case 'zip':
-        await createZipArchive(sourceDir, archivePath, filteredFiles, compressionLevel, verbose);
+        await createZipArchive(sourceDir, archivePath, filteredFiles, compressionLevel);
         break;
       
       case 'tar':
-        await createTarArchive(sourceDir, archivePath, filteredFiles, false, compressionLevel, verbose);
+        await createTarArchive(sourceDir, archivePath, filteredFiles, false, compressionLevel);
         break;
       
       case 'tar.gz':
-        await createTarArchive(sourceDir, archivePath, filteredFiles, true, compressionLevel, verbose);
+        await createTarArchive(sourceDir, archivePath, filteredFiles, true, compressionLevel);
         break;
       
       case '7z':
-        await create7zArchive(sourceDir, archivePath, filteredFiles, verbose);
+        await create7zArchive(sourceDir, archivePath, filteredFiles);
         break;
       
       default:
@@ -316,12 +287,6 @@ export async function createArchive(
 
     // Calculate checksums of the archive file
     const checksums = calculateChecksums(archivePath);
-
-    if (verbose) {
-      console.log(`[pack-orchestrator] ✅ MD5: ${checksums.md5}`);
-      console.log(`[pack-orchestrator] ✅ SHA1: ${checksums.sha1}`);
-      console.log(`[pack-orchestrator] ✅ SHA256: ${checksums.sha256}`);
-    }
 
     let finalPath = archivePath;
 
@@ -338,9 +303,6 @@ export async function createArchive(
         const finalFilePath = path.isAbsolute(newPath) ? newPath : path.resolve(dir, newFileName);
         fs.renameSync(archivePath, finalFilePath);
         finalPath = finalFilePath;
-        if (verbose) {
-          console.log(`[pack-orchestrator] 🔄 重命名: ${path.basename(finalFilePath)}`);
-        }
       }
     }
 

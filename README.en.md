@@ -21,7 +21,7 @@ export default {
     orchestrator({
       pack: {
         outDir: 'dist',                    // Source dir to archive, default 'dist'
-        fileName: 'app-[version]-[timestamp]', // [name] [version] [timestamp] [hash]
+        fileName: 'app-[version]-[timestamp]', // [name] [version] [timestamp] [hash] [hash:8]
         format: 'zip',                          // zip | tar | tar.gz | 7z
         compressionLevel: 9,                   // 0-9
         exclude: ['**/*.map'],                // Files to exclude
@@ -29,11 +29,29 @@ export default {
         archiveOutDir: './output',            // Archive output dir, defaults to project root
       },
       hooks: { ... },
-      verbose: true,                          // Enable verbose logging
     }),
   ],
 };
 ```
+
+## fileName Placeholders
+
+| Placeholder | Description | Example |
+|:------------|:------------|:--------|
+| `[name]` | package.json name | `my-app` |
+| `[version]` | package.json version | `1.0.0` |
+| `[timestamp]` | Current timestamp | `1714012345678` |
+| `[hash]` | Bundle content MD5 hash (full 32 chars) | `a1b2c3d4...` |
+| `[hash:8]` | First N chars of MD5 hash (custom length) | `a1b2c3d4` |
+
+```typescript
+fileName: '[name]-v[version]'       // my-app-v1.0.0.zip
+fileName: '[name]-[timestamp]'      // my-app-1714012345678.zip
+fileName: '[name]-[hash:8]'         // my-app-a1b2c3d4.zip
+fileName: '[name]-[hash]'           // my-app-a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6.zip
+```
+
+If no extension is specified, the plugin automatically appends the correct suffix based on `format`.
 
 ## Formats
 
@@ -45,7 +63,36 @@ export default {
 
 ## Hooks
 
-`onAfterBuild` can return a new path to rename. File is renamed when the return value differs from the original path:
+| Hook | Description | Parameters |
+|:-----|:------------|:-----------|
+| `onBeforeBuild` | Called before build starts | None |
+| `onBundleGenerated` | Called after Vite bundle is generated, before archiving | `bundle` — Vite output bundle object |
+| `onAfterBuild` | Called after archive is created | `path`, `format`, `checksums` |
+| `onError` | Called on error | `error` — Error object |
+
+### onBeforeBuild
+
+Called before build starts, suitable for pre-build cleanup:
+
+```typescript
+onBeforeBuild: async () => {
+  // Pre-build processing
+},
+```
+
+### onBundleGenerated
+
+Called after Vite bundle is generated but before archiving, gives access to the bundle:
+
+```typescript
+onBundleGenerated: (bundle) => {
+  console.log('Generated files:', Object.keys(bundle));
+},
+```
+
+### onAfterBuild
+
+Called after archive is created. Return a new path to auto-rename (takes effect when different from original):
 
 ```typescript
 // 1. Insert sha1 hash before extension

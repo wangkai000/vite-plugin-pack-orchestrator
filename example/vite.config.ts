@@ -15,7 +15,6 @@ export default defineConfig({
         onAfterBuild: (path, format, checksums) =>
           path.replace(/(\.(?:zip|tar\.gz|tar|7z))$/, `-${checksums.sha1.slice(0, 8)}$1`),
       },
-      verbose: true,
     }),
   ],
   build: { outDir: 'dist', emptyOutDir: true },

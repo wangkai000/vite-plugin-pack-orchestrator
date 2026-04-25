@@ -12,7 +12,6 @@ export default function packOrchestrator(options: PackOrchestratorOptions = {}):
   const {
     pack = {},
     hooks = {},
-    verbose = false,
   } = options;
 
   let config: ResolvedConfig;
@@ -28,9 +27,6 @@ export default function packOrchestrator(options: PackOrchestratorOptions = {}):
     async buildStart() {
       if (hooks.onBeforeBuild) {
         await hooks.onBeforeBuild();
-      }
-      if (verbose) {
-        console.log('[pack-orchestrator] 开始打包...');
       }
     },
 
@@ -52,7 +48,7 @@ export default function packOrchestrator(options: PackOrchestratorOptions = {}):
       if (!pack || Object.keys(pack).length === 0) return;
 
       try {
-        await createArchive(pack, config.root, hooks, verbose, bundleHash);
+        await createArchive(pack, config.root, hooks, bundleHash);
       } catch (error) {
         console.error('[pack-orchestrator] 打包失败:', error);
         if (hooks.onError) {

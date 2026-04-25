@@ -52,8 +52,6 @@ export interface PackOrchestratorOptions {
   pack?: ArchiveOptions;
   /** Hook callbacks */
   hooks?: PluginHooks;
-  /** Enable verbose logging */
-  verbose?: boolean;
 }
 
 export type PackOrchestratorPlugin = (options?: PackOrchestratorOptions) => Plugin;

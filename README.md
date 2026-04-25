@@ -21,7 +21,7 @@ export default {
     orchestrator({
       pack: {
         outDir: 'dist',                    // 要打包的源目录，默认 'dist'
-        fileName: 'app-[version]-[timestamp]', // 支持 [name] [version] [timestamp] [hash]
+        fileName: 'app-[version]-[timestamp]', // 支持 [name] [version] [timestamp] [hash] [hash:8]
         format: 'zip',                    // zip | tar | tar.gz | 7z
         compressionLevel: 9,              // 0-9
         exclude: ['**/*.map'],            // 排除的文件
@@ -29,11 +29,29 @@ export default {
         archiveOutDir: './output',        // 压缩包输出目录，不写默认项目根目录
       },
       hooks: { ... },
-      verbose: true,                      // 开启详细日志
     }),
   ],
 };
 ```
+
+## fileName 占位符
+
+| 占位符 | 说明 | 示例值 |
+|:-------|:-----|:-------|
+| `[name]` | package.json 中的 name | `my-app` |
+| `[version]` | package.json 中的 version | `1.0.0` |
+| `[timestamp]` | 当前时间戳 | `1714012345678` |
+| `[hash]` | 构建内容 MD5 哈希（完整 32 位） | `a1b2c3d4...` |
+| `[hash:8]` | MD5 哈希前 N 位（自定义长度） | `a1b2c3d4` |
+
+```typescript
+fileName: '[name]-v[version]'       // my-app-v1.0.0.zip
+fileName: '[name]-[timestamp]'      // my-app-1714012345678.zip
+fileName: '[name]-[hash:8]'         // my-app-a1b2c3d4.zip
+fileName: '[name]-[hash]'           // my-app-a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6.zip
+```
+
+不写扩展名时，插件会根据 `format` 自动追加对应后缀。
 
 ## 格式
 
@@ -45,7 +63,36 @@ export default {
 
 ## 钩子
 
-`onAfterBuild` 可返回新路径实现重命名，返回值与原路径不同时自动重命名：
+| 钩子 | 说明 | 参数 |
+|:-----|:-----|:-----|
+| `onBeforeBuild` | 构建开始前执行 | 无 |
+| `onBundleGenerated` | Vite bundle 生成后、压缩前执行 | `bundle` — Vite 生成的产物对象 |
+| `onAfterBuild` | 压缩包创建完成后执行 | `path` 路径, `format` 格式, `checksums` 校验和 |
+| `onError` | 打包出错时执行 | `error` — 错误对象 |
+
+### onBeforeBuild
+
+构建前执行，适合做前置清理：
+
+```typescript
+onBeforeBuild: async () => {
+  // 构建前的一些处理
+},
+```
+
+### onBundleGenerated
+
+Vite bundle 生成后、压缩前执行，可以拿到构建产物信息：
+
+```typescript
+onBundleGenerated: (bundle) => {
+  console.log('生成的文件:', Object.keys(bundle));
+},
+```
+
+### onAfterBuild
+
+压缩完成后执行，可返回新路径实现自动重命名（返回值与原路径不同时生效）：
 
 ```typescript
 // 1. 在扩展名前插入 sha1 哈希
