@@ -2,12 +2,13 @@
 
 English | [简体中文](./README.md)
 
-> 🎼 vite-plugin-pack-orchestrator Pack Orchestrator - Auto-archive dist folder to ZIP/TAR/7Z after build
+> 🎼 Pack Orchestrator - Auto-archive dist folder to ZIP/TAR/7Z after build
 
-A lightweight Vite plugin that automatically archives the build output:
+A lightweight Vite plugin that automatically archives your build output:
 
 - 📦 **Multi-format** — ZIP / TAR / TAR.GZ / 7Z
-- 🎣 **Lifecycle hooks** — Full callback support
+- 🎣 **Lifecycle hooks** — Support `beforeBuild`, `bundleGenerated`, `afterBuild`, `error` callbacks
+- ⚙️ **Flexible** — Compression level, file filtering, custom output dir
 
 ---
 
@@ -36,6 +37,7 @@ export default defineConfig({
       },
       hooks: {
         onBeforeBuild: () => console.log('Building...'),
+        onBundleGenerated: (bundle) => console.log(`${Object.keys(bundle).length} files`),
         onAfterBuild: (path, format) => console.log(`Done: ${path}`),
       },
       verbose: true,
@@ -80,7 +82,34 @@ hooks: {
   onBeforeBuild?: () => void;            // Before build starts
   onBundleGenerated?: (bundle) => void;  // After bundle generated
   onAfterBuild?: (path, format) => void; // After archive created
-  onError?: (error) => void;             // On error
+  onError?: (error) => void;            // On error
+}
+```
+
+## Complete API
+
+```typescript
+import orchestrator, {
+  type PackOrchestratorOptions,
+  type ArchiveFormat,
+} from 'vite-plugin-pack-orchestrator';
+```
+
+### PackOrchestratorOptions
+
+```typescript
+interface PackOrchestratorOptions {
+  pack?: {
+    outDir?: string;             // Output directory, default 'dist'
+    fileName?: string;           // Archive file name, default '[name]-[version]'
+    format?: ArchiveFormat;      // Archive format, default 'zip'
+    compressionLevel?: number;    // Compression level 0-9, default 9
+    include?: string[];           // Glob patterns to include
+    exclude?: string[];          // Glob patterns to exclude
+    archiveOutDir?: string;       // Archive output directory
+  };
+  hooks?: PluginHooks;
+  verbose?: boolean;
 }
 ```
 
