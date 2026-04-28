@@ -7,7 +7,7 @@
 ## 安装
 
 ```bash
-npm install vite-plugin-pack-orchestrator
+npm install vite-plugin-pack-orchestrator -D
 ```
 
 ## 使用
